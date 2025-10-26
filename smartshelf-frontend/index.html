@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartShelfX - Login</title>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+    .container {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 12px 22px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 380px;
+      box-sizing: border-box;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #444;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: 1px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #555;
+    }
+    input[type="email"], 
+    input[type="password"] {
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border-color 0.3s ease;
+    }
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 8px #667eea;
+    }
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-weight: 700;
+      font-size: 17px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s ease;
+    }
+    button:hover {
+      background-color: #556bc1;
+      transform: scale(1.05);
+    }
+    .message {
+      margin-top: 15px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+    .message.error {
+      color: #b00020;
+    }
+    .message.success {
+      color: #2e7d32;
+    }
+    .links {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+    }
+    .links a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 0 10px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .links a:hover {
+      color: #4a55c5;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SmartShelfX Login</h1>
+    <form id="loginForm">
+      <label for="email">Email</label>
+      <input type="email" id="email" required autocomplete="username" />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" required autocomplete="current-password" />
+
+      <button type="submit">Login</button>
+    </form>
+    <p id="message" class="message"></p>
+    <div class="links">
+      <a onclick="goToRegister()">Register</a> |
+      <a onclick="goToForgot()">Forgot Password?</a>
+    </div>
+  </div>
+
+  <script>
+    const messageEl = document.getElementById('message');
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      messageEl.style.display = 'none';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('http://localhost:8080/api/users/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const msgText = await res.text();
+        messageEl.textContent = msgText;
+        messageEl.className = 'message ' + (msgText === 'Login successful!' ? 'success' : 'error');
+        messageEl.style.display = 'block';
+
+        if (msgText === 'Login successful!') {
+          localStorage.setItem('userEmail', email);
+          setTimeout(() => {
+            window.location.href = 'home.html';
+          }, 1500);
+        }
+      } catch (error) {
+        messageEl.textContent = 'Error connecting to backend. Please try later.';
+        messageEl.className = 'message error';
+        messageEl.style.display = 'block';
+      }
+    });
+
+    function goToRegister() {
+      window.location.href = 'register.html';
+    }
+
+    function goToForgot() {
+      window.location.href = 'forgot.html';
+    }
+  </script>
+</body>
+</html>

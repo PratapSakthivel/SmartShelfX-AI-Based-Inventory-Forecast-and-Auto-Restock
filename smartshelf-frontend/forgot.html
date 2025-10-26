@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartShelfX - Forgot Password</title>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+    .container {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 12px 22px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #444;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: 1px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #555;
+    }
+    input[type="email"],
+    input[type="password"] {
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border-color 0.3s ease;
+    }
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 8px #667eea;
+    }
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-weight: 700;
+      font-size: 17px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s ease;
+    }
+    button:hover {
+      background-color: #556bc1;
+      transform: scale(1.05);
+    }
+    .message {
+      margin-top: 15px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+    .message.error {
+      color: #b00020;
+      display: block;
+    }
+    .message.success {
+      color: #2e7d32;
+      display: block;
+    }
+    .links {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+    }
+    .links a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .links a:hover {
+      color: #4a55c5;
+      text-decoration: underline;
+    }
+    .password-rules {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 5px;
+      font-size: 12px;
+      color: #666;
+    }
+    .rule {
+      margin: 5px 0;
+    }
+    .rule.valid {
+      color: green;
+    }
+    .rule.invalid {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Reset Password</h1>
+    <form id="forgotForm">
+      <label for="email">Email</label>
+      <input type="email" id="email" required autocomplete="email" />
+
+      <label for="password">New Password</label>
+      <input type="password" id="password" required autocomplete="new-password" oninput="checkPasswordStrength()" />
+
+      <div class="password-rules">
+        <div id="lengthRule" class="rule invalid">❌ At least 6 characters</div>
+        <div id="digitRule" class="rule invalid">❌ At least 1 digit</div>
+      </div>
+
+      <button type="submit">Reset Password</button>
+    </form>
+    <p id="message" class="message"></p>
+    <div class="links">
+      <a onclick="goToLogin()">Back to Login</a>
+    </div>
+  </div>
+
+  <script>
+    function checkPasswordStrength() {
+      const password = document.getElementById('password').value;
+      const lengthRule = document.getElementById('lengthRule');
+      const digitRule = document.getElementById('digitRule');
+
+      if (password.length >= 6) {
+        lengthRule.textContent = '✅ At least 6 characters';
+        lengthRule.className = 'rule valid';
+      } else {
+        lengthRule.textContent = '❌ At least 6 characters';
+        lengthRule.className = 'rule invalid';
+      }
+
+      if (/\d/.test(password)) {
+        digitRule.textContent = '✅ At least 1 digit';
+        digitRule.className = 'rule valid';
+      } else {
+        digitRule.textContent = '❌ At least 1 digit';
+        digitRule.className = 'rule invalid';
+      }
+    }
+
+    function isPasswordStrong(password) {
+      return password.length >= 6 && /\d/.test(password);
+    }
+
+    document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const msgDiv = document.getElementById('message');
+
+      if (!isPasswordStrong(password)) {
+        msgDiv.className = 'message error';
+        msgDiv.textContent = 'Password must be at least 6 characters and contain at least one digit.';
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:8080/api/users/forgot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const message = await response.text();
+
+        if (message.includes('successfully')) {
+          msgDiv.className = 'message success';
+          msgDiv.textContent = message;
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500);
+        } else {
+          msgDiv.className = 'message error';
+          msgDiv.textContent = message;
+        }
+      } catch (err) {
+        msgDiv.className = 'message error';
+        msgDiv.textContent = 'Error connecting to server.';
+      }
+    });
+
+    function goToLogin() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
